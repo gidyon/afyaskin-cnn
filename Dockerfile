@@ -1,8 +1,5 @@
 FROM node:12-alpine3.9
 
-# only node have access to our application
-USER node
-
 # Create app directory
 WORKDIR /app
 
@@ -11,7 +8,13 @@ WORKDIR /app
 # where available (npm@5+)
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN apk update && \
+   apk add ca-certificates && \
+   update-ca-certificates && \
+   rm -rf /var/cache/apk/* && \
+   apk add python3
+
+RUN npm install
 
 # Bundle app source
 COPY . .
