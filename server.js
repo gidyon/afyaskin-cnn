@@ -17,8 +17,6 @@ let upload = multer({
     }    
 })
 
-let model
-
 async function start() {
     const model = await tf.loadLayersModel(meta.SAVED_MODEL_PATH)
     const threshold = 0.5
@@ -33,14 +31,14 @@ async function start() {
             }
 
             // hold features
-            const imagesTensor = []
+            const imagesTensors = []
 
             for (const file of req.files) {
-                const tensor = await convertImageToTensor(file.buffer)
-                imagesTensor.push(tensor)
+                const imageTensor = await convertImageToTensor(file.buffer)
+                imagesTensors.push(imageTensor)
             }
 
-            const tensors = createTensor(imagesTensor)
+            const tensors = createTensor(imagesTensors)
 
             // we predict on multiple images at once
             const predictions = await doPrediction(
@@ -63,11 +61,11 @@ async function start() {
         } finally {}
     }
 
-    app.post('/classify/', upload.array('images', 6), async function (req, res) {
+    const process = async () => await classify()
+
+    app.post('/api/classify/', upload.array('images', 6), async function (req, res) {
         tf.tidy(() => {
-            (async () => {
-                await classify(req, res)
-            })()
+            process()
         })
     })
 
